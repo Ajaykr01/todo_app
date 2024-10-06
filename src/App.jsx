@@ -4,36 +4,54 @@ import "./App.css";
 function App() {
   const [inputList, setInputList] = useState([]);
   const [inputValue, setInputValue] = useState("");
-  const [editIndex, setEditIndex] = useState(null); // Track the index of the todo being edited
-  const [editValue, setEditValue] = useState(""); // Track the new value for the todo
+  const [editIndex, setEditIndex] = useState(null);
+  const [editValue, setEditValue] = useState("");
+  const [filter, setFilter] = useState("All");
 
   const addTodo = () => {
     if (inputValue.trim() === "") {
       alert("Please add some todo");
     } else {
-      setInputList([...inputList, inputValue]);
-      setInputValue(""); // Clear the input field
+      setInputList([...inputList, { task: inputValue, completed: false }]);
+      setInputValue("");
     }
   };
 
   const deleteTask = (index) => {
-    const newInputList = inputList.filter((_, i) => i !== index);
-    setInputList(newInputList); // Update state with the new list
+    const newInputList = inputList.filter((_, i) => i !== index); // _ --> Track the item being inserted over, "i ! == index" --> items whose indices don't match the passed index are kept.
+    setInputList(newInputList);
+  };
+
+  const toggleCompletion = (index) => {
+    const updatedList = inputList.map((item, i) =>
+      i === index ? { ...item, completed: !item.completed } : item
+    );
+    setInputList(updatedList);
   };
 
   const startEditing = (index) => {
-    setEditIndex(index); // Set the index of the todo to edit
-    setEditValue(inputList[index]); // Set the edit value to the current todo text
+    setEditIndex(index);
+    setEditValue(inputList[index].task);
   };
 
   const saveEdit = () => {
-    const updatedList = inputList.map((item, i) =>
-      i === editIndex ? editValue : item
+    const updatedList = inputList.map(
+      (item, i) => (i === editIndex ? { ...item, task: editValue } : item) //creates a new object with all the existing properties from item but updates the task property with the new value (editValue).
     );
-    setInputList(updatedList); // Update the todo list with the edited item
-    setEditIndex(null); // Reset the editing state
-    setEditValue(""); // Clear the edit value
+    setInputList(updatedList);
+    setEditIndex(null);
+    setEditValue("");
   };
+
+  const filteredTodos = inputList.filter((todo) => {
+    if (filter === "Completed") {
+      return todo.completed;
+    }
+    if (filter === "Incomplete") {
+      return !todo.completed;
+    }
+    return true;
+  });
 
   return (
     <div className="bg-black h-screen flex flex-col items-center">
@@ -55,15 +73,30 @@ function App() {
           >
             +
           </button>
+          <select
+            className="rounded-md bg-pink-500 text-white outline-none cursor-pointer"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="All">All</option>
+            <option value="Completed">Completed</option>
+            <option value="Incomplete">Incomplete</option>
+          </select>
         </div>
-        {inputList.map((item, index) => (
+
+        {/* Display filtered todos */}
+        {filteredTodos.map((item, index) => (
           <div
             key={index}
-            className="flex justify-around items-center h-12 border mt-4 ml-10 mr-10"
+            className="flex justify-around items-center h-12 border mt-4 ml-5 mr-5"
           >
-            <div className="flex text-lg w-[25rem] ml-2">
+            <input
+              type="checkbox"
+              checked={item.completed}
+              onChange={() => toggleCompletion(index)}
+            />
+            <div className="flex text-lg w-[26rem]">
               {editIndex === index ? (
-                // If we are editing this item, show an input field
                 <input
                   type="text"
                   value={editValue}
@@ -71,14 +104,21 @@ function App() {
                   className="w-[25rem] bg-white text-black outline-none rounded-sm"
                 />
               ) : (
-                <h1 className="text-white">{item}</h1>
+                <h1
+                  className="text-white"
+                  style={{
+                    textDecoration: item.completed ? "line-through" : "none",
+                  }}
+                >
+                  {item.task}
+                </h1>
               )}
             </div>
             <div className="w-[7rem] flex justify-evenly">
               {editIndex === index ? (
                 <button
                   className="h-10 w-12 text-2xl text-white"
-                  onClick={saveEdit} // Call saveEdit to update the todo
+                  onClick={saveEdit}
                 >
                   <i className="fa-solid fa-check"></i>
                 </button>
