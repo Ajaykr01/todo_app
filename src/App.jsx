@@ -8,6 +8,7 @@ function App() {
   const [editValue, setEditValue] = useState("");
   const [filter, setFilter] = useState("All");
 
+  
   const addTodo = () => {
     if (inputValue.trim() === "") {
       alert("Please add some todo");
@@ -69,7 +70,10 @@ function App() {
           />
           <button
             className="bg-green-500 text-white min-w-16 text-3xl flex justify-center rounded-md"
-            onClick={addTodo}
+            onClick={()=>{
+              addTodo()
+              localStorage.setItem("task1",inputValue)
+            }}
           >
             +
           </button>
